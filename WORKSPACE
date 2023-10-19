@@ -335,14 +335,18 @@ http_archive(
 http_archive(
     name = "opencv",
     build_file_content = all_content,
-    strip_prefix = "opencv-3.4.10",
-    urls = ["https://github.com/opencv/opencv/archive/3.4.10.tar.gz"],
+    strip_prefix = "opencv-4.8.0",
+    sha256 = "9dc6a9a95edc133e165e9f6db9412dd899e28d4e5e4979f17cb5966f4b7f3fb1",
+    type = "zip",
+    url = "https://github.com/opencv/opencv/archive/refs/tags/4.8.0.zip",
 )
 
 new_local_repository(
     name = "linux_opencv",
     build_file = "@//third_party:opencv_linux.BUILD",
-    path = "/usr",
+    #path = "/usr",
+    #path = "/home/miki/workspace_local/mediapipe/bazel-bin/third_party/opencv_cmake",
+    path = "bazel-bin/third_party/opencv_cmake",
 )
 
 new_local_repository(

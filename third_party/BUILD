@@ -149,7 +149,7 @@ OPENCV_MODULES = [
 # to switch to static libraries.
 OPENCV_SHARED_LIBS = True
 
-OPENCV_SO_VERSION = "3.4"
+OPENCV_SO_VERSION = "4.8.0"
 
 cmake(
     name = "opencv_cmake",
@@ -221,7 +221,7 @@ cmake(
         "-lavformat",
         "-lavutil",
         "-lswscale",
-        "-lavresample",
+        "-lswresample",
         "-ldl",
         "-lm",
         "-lpthread",
@@ -239,6 +239,7 @@ cmake(
         "libopencv_%s.a" % module
         for module in OPENCV_MODULES
     ] if not OPENCV_SHARED_LIBS else None,
+    out_include_dir = "include/opencv4",
 )
 
 alias(

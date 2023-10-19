@@ -30,7 +30,7 @@ from setuptools.command import build_ext
 from setuptools.command import build_py
 from setuptools.command import install
 
-__version__ = 'dev'
+__version__ = '0.10.7'
 MP_DISABLE_GPU = os.environ.get('MEDIAPIPE_DISABLE_GPU') != '0'
 IS_WINDOWS = (platform.system() == 'Windows')
 IS_MAC = (platform.system() == 'Darwin')
@@ -47,6 +47,15 @@ GPU_OPTIONS_ENBALED = [
     '--copt=-DEGL_NO_X11',
 ]
 GPU_OPTIONS = GPU_OPTIONS_DISBALED if MP_DISABLE_GPU else GPU_OPTIONS_ENBALED
+GPU_OPTIONS = [
+    '--config=cuda',
+    '--spawn_strategy=local',
+    '--define=no_gcp_support=true',
+    '--define=no_aws_support=true',
+    '--define=no_nccl_support=true',
+    '--copt=-DMESA_EGL_NO_X11_HEADERS',
+    '--copt=-DEGL_NO_X11',
+]
 
 
 def _normalize_path(path):
@@ -116,9 +125,11 @@ def _modify_opencv_cmake_rule(link_opencv):
   # from source. For simplicity, we continue to link the prebuilt version of
   # the OpenCV library through "@windows_opencv//:opencv".
   if not link_opencv and not IS_WINDOWS:
+    #content = open(MP_THIRD_PARTY_BUILD,
+    #               'r').read().replace('OPENCV_SHARED_LIBS = True',
+    #                                   'OPENCV_SHARED_LIBS = False')
     content = open(MP_THIRD_PARTY_BUILD,
-                   'r').read().replace('OPENCV_SHARED_LIBS = True',
-                                       'OPENCV_SHARED_LIBS = False')
+                   'r').read()
     shutil.move(MP_THIRD_PARTY_BUILD, _get_backup_file(MP_THIRD_PARTY_BUILD))
     build_file = open(MP_THIRD_PARTY_BUILD, 'w')
     build_file.write(content)
@@ -222,6 +233,7 @@ class GeneratePyProtos(build_ext.build_ext):
       sys.stderr.write('generating proto file: %s\n' % output)
       protoc_command = [
           self._protoc, '-I.',
+          '--experimental_allow_proto3_optional',
           '--python_out=' + os.path.abspath(self.build_lib), source
       ]
       _invoke_shell_command(protoc_command)
@@ -266,13 +278,13 @@ class BuildModules(build_ext.build_ext):
       self._download_external_file(external_file)
 
     binary_graphs = [
-        'face_detection/face_detection_short_range_cpu',
-        'face_detection/face_detection_full_range_cpu',
-        'face_landmark/face_landmark_front_cpu',
-        'hand_landmark/hand_landmark_tracking_cpu',
-        'holistic_landmark/holistic_landmark_cpu', 'objectron/objectron_cpu',
-        'pose_landmark/pose_landmark_cpu',
-        'selfie_segmentation/selfie_segmentation_cpu'
+        'face_detection/face_detection_short_range_gpu',
+        'face_detection/face_detection_full_range_gpu',
+        'face_landmark/face_landmark_front_gpu',
+        'hand_landmark/hand_landmark_tracking_gpu',
+        'holistic_landmark/holistic_landmark_gpu', 'objectron/objectron_gpu',
+        'pose_landmark/pose_landmark_gpu',
+        'selfie_segmentation/selfie_segmentation_gpu'
     ]
     for elem in binary_graphs:
       binary_graph = os.path.join('mediapipe/modules/', elem)
@@ -378,7 +390,7 @@ class BuildExtension(build_ext.build_ext):
         # Build x86
         self._build_binary(
             ext,
-            ['--cpu=darwin', '--ios_multi_cpus=i386,x86_64,armv7,arm64'],
+            #['--cpu=darwin', '--ios_multi_cpus=i386,x86_64,armv7,arm64'],
         )
         x86_name = self.get_ext_fullpath(ext.name)
         # Build Arm64
